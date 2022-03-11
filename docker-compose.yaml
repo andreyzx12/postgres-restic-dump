@@ -1,0 +1,23 @@
+version: "3.3"
+services:
+  restic-robot:
+    image: southclaws/restic-robot
+    environment:
+      SCHEDULE: "1 4 */1 * *"
+      RESTIC_REPOSITORY: "${REPOSITORY}"
+      RESTIC_PASSWORD: "${PASSWORD}"
+      RESTIC_ARGS: /data/pgdumps
+      AWS_ACCESS_KEY_ID: some_key_id
+      AWS_SECRET_ACCESS_KEY: some_access_key
+      PROMETHEUS_ADDRESS: ":8085"
+      PRE_COMMAND: "/bin/bash /data/app/pg_dump.sh /data/app/tasks.csv"
+      POST_COMMAND: "restic forget --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --prune"
+    tty: true
+    network_mode: host
+    volumes:
+      - type: bind
+        source: ${PWD}/pgdumps
+        target: /data/pgdumps
+      - type: bind
+        source: ${PWD}/script/
+        target: /data/app/
